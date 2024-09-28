@@ -1,6 +1,9 @@
-import React from 'react'
+import React from 'react';
+import Player from '../types/player';
 
-const PlayerList = ({teamName = 'X'}) => {
+const PlayerList = ({playerList, teamName}: {playerList: Player[], teamName: string}) => {
+    const players : JSX.Element[] = playerList.map(player => <li key={player.id}>{player.name}</li>)
+
   return (
     <div className='bg-gray-200 mx-auto w-64 border border-black rounded-lg'>
 
@@ -11,13 +14,7 @@ const PlayerList = ({teamName = 'X'}) => {
 
         {/* Player List */}
         <ul className='text-center'>
-            <li>
-                Player 1
-            </li>
-
-            <li>
-                Player 2
-            </li>
+            {players}
 
         </ul>
     

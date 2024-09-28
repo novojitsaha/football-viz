@@ -1,36 +1,81 @@
 import ScoreBoard from "./components/ScoreBoard";
 import PlayerList from "./components/PlayerList";
 import FootballField from "./components/FootballField";
-import Player from "./types/Player";
+import Player from "./types/player";
 import { useEffect, useState } from "react";
-import eventList from './assets/15946.json';
-
-import useEvents from "./hooks/useEvents";
-
+import eventList from "./assets/15946.json";
+import {
+  positionCoordinatesKey,
+  positionCoordinates,
+} from "./utils/positionCoordinates";
 
 function App() {
-  // const {startingTeams, events} = useEvents(allEvents as any[]);
+  // State to track team names
+  const [team, setTeam] = useState<string[]>([]);
+
+  // State to track player coordinates of team A
+  const [lineupA, setLineupA] = useState<Player[]>([]);
+
+  // State to track player coordinates of team B
+  const [lineupB, setLineupB] = useState<Player[]>([]);
 
   // State to track the current event index
-  const [currentEventIndex, setCurrentEventIndex] = useState<null | number>(null);
+  const [currentEventIndex, setCurrentEventIndex] = useState<null | number>(
+    null
+  );
 
+  // State to track
 
   // Effect to run whenever the currentEventIndex changes
   useEffect(() => {
-    console.log(currentEventIndex);
+    console.log("current event index: ", currentEventIndex);
 
-
-
+    console.log("current event: ", currentEvent);
 
     // Return to index 1 if currentEventIndex goes out of bounds
     if (currentEventIndex !== null && currentEventIndex > eventList.length) {
       setCurrentEventIndex(1);
     }
+
+    controller(currentEvent);
   }, [currentEventIndex]);
 
   // Get the current object based on the currentEventIndex
   const currentEvent = eventList.find((e) => e.index === currentEventIndex);
 
+  // Route props to the corresponding component based on event type
+  const controller = (currentEvent: any | null) => {
+    if (!currentEvent) return;
+
+    switch (currentEvent.type.name) {
+      case "Starting XI":
+        // Get player list from the event
+
+        const playerList: Player[] = [];
+        currentEvent.tactics.lineup.forEach((object: any) => {
+          const temp: Player = {
+            id: object.player.id,
+            name: object.player.name,
+            position: object.position.name,
+            coordinates:
+              positionCoordinates[
+                object.position.name as positionCoordinatesKey
+              ],
+            jersey: object.jersey_number,
+          };
+          playerList.push(temp);
+        });
+
+        if (lineupA.length === 0) {
+          setLineupA(playerList);
+          setTeam([...team, currentEvent.team.name]);
+        } else {
+          setLineupB(playerList);
+          setTeam([...team, currentEvent.team.name]);
+        }
+        break;
+    }
+  };
 
   // Function to handle button click and iterate to the next event
 
@@ -40,40 +85,19 @@ function App() {
     } else {
       setCurrentEventIndex(1);
     }
-
-  }
-
-
-  // useEffect(() => {
-  //   if (currentEventIndex === null) return;
-  //   // event has changed
-
-  //   // get new event
-  //   const newEvent = exampleEventSim[currentEventIndex!];
-  //   // if the event is null or undefined then return
-  //   if (!newEvent) return;
-  //   console.log("newEvent: ", newEvent)
-  //   // find player who needs to be changed
-  //   const newPlayers = players.map(p => {
-  //     if (p.id === newEvent.id) {
-  //       p.x = newEvent.x;
-  //       p.y = newEvent.y;
-  //     }
-  //     return p;
-  //   })
-  //   // set New players
-  //   setPlayers(newPlayers)
-  // }, [currentEventIndex])
-
-  // console.log('starting teams: ', startingTeams)
-
-
+  };
 
   return (
     <div className="">
-      <ScoreBoard />
+      <ScoreBoard teamA={team[0]}
+                  teamB={team[1]} />
 
-      <button className="border border-black p-6 bg-red-200" onClick={handleNext}>Press Me!</button>
+      <button
+        className="border border-black p-6 bg-red-200"
+        onClick={handleNext}
+      >
+        Press Me!
+      </button>
 
       <div>
         {currentEvent ? (
@@ -84,26 +108,16 @@ function App() {
       </div>
 
       <div className="flex items-center border border-black">
+        <PlayerList teamName={team[0]}
+                    playerList={lineupA} />
 
-        <PlayerList
-          teamName="X"
-        />
+        <FootballField playerListA={lineupA} playerListB={lineupB} />
 
-        <FootballField
-          currentEvent={currentEvent}
-        />
-
-
-
-        <PlayerList
-          teamName="Y"
-        />
+        <PlayerList teamName={team[1]}
+                    playerList={lineupB} />
       </div>
-
     </div>
-
-
-  )
+  );
 }
 
-export default App
+export default App;
