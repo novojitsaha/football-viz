@@ -2,7 +2,7 @@ import React from 'react';
 import Player from '../types/player';
 
 const PlayerList = ({playerList, teamName}: {playerList: Player[], teamName: string}) => {
-    const players : JSX.Element[] = playerList.map(player => <li key={player.id}>{player.name}</li>)
+    const players : JSX.Element[] = playerList.map((player) => <li key={player.id}>{player.name}</li>)
 
   return (
     <div className='bg-gray-200 mx-auto w-64 border border-black rounded-lg'>

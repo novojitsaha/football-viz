@@ -1,6 +1,7 @@
 import ScoreBoard from "./components/ScoreBoard";
 import PlayerList from "./components/PlayerList";
 import FootballField from "./components/FootballField";
+import EventCard from "./components/EventCard";
 import Player from "./types/player";
 import { useEffect, useState } from "react";
 import eventList from "./assets/15946.json";
@@ -23,9 +24,6 @@ function App() {
   const [currentEventIndex, setCurrentEventIndex] = useState<null | number>(
     null
   );
-
-  // State to track
-
   // Effect to run whenever the currentEventIndex changes
   useEffect(() => {
     console.log("current event index: ", currentEventIndex);
@@ -67,12 +65,22 @@ function App() {
         });
 
         if (lineupA.length === 0) {
+
           setLineupA(playerList);
           setTeam([...team, currentEvent.team.name]);
         } else {
-          setLineupB(playerList);
+          // change starting  x-coordinates to move players to other side of the field
+          const updatedPlayerList = playerList.map((player) : Player => ({
+            ...player,
+            coordinates: [120 - player.coordinates[0], player.coordinates[1]]
+
+          }));
+          setLineupB(updatedPlayerList);
           setTeam([...team, currentEvent.team.name]);
         }
+        break;
+
+      case "Half Start":
         break;
     }
   };
@@ -88,7 +96,7 @@ function App() {
   };
 
   return (
-    <div className="">
+    <div className="m-4">
       <ScoreBoard teamA={team[0]}
                   teamB={team[1]} />
 
@@ -116,6 +124,19 @@ function App() {
         <PlayerList teamName={team[1]}
                     playerList={lineupB} />
       </div>
+
+      <div className="m-4">
+        {currentEvent ? (
+          <EventCard currentEvent={currentEvent}></EventCard>
+        ) : (
+          <p>Event not available yet. </p>
+        )
+
+        }
+        
+      </div>
+
+
     </div>
   );
 }
