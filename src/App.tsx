@@ -24,6 +24,7 @@ function App() {
   const [currentEventIndex, setCurrentEventIndex] = useState<null | number>(
     null
   );
+
   // Effect to run whenever the currentEventIndex changes
   useEffect(() => {
     console.log("current event index: ", currentEventIndex);
@@ -48,7 +49,6 @@ function App() {
     switch (currentEvent.type.name) {
       case "Starting XI":
         // Get player list from the event
-
         const playerList: Player[] = [];
         currentEvent.tactics.lineup.forEach((object: any) => {
           const temp: Player = {
@@ -65,22 +65,26 @@ function App() {
         });
 
         if (lineupA.length === 0) {
-
           setLineupA(playerList);
           setTeam([...team, currentEvent.team.name]);
-        } else {
+        } else if (lineupB.length === 0) {
           // change starting  x-coordinates to move players to other side of the field
-          const updatedPlayerList = playerList.map((player) : Player => ({
-            ...player,
-            coordinates: [120 - player.coordinates[0], player.coordinates[1]]
-
-          }));
+          const updatedPlayerList = playerList.map(
+            (player): Player => ({
+              ...player,
+              coordinates: [120 - player.coordinates[0], player.coordinates[1]],
+            })
+          );
           setLineupB(updatedPlayerList);
           setTeam([...team, currentEvent.team.name]);
         }
         break;
 
       case "Half Start":
+        break;
+
+      case "Pass":
+        
         break;
     }
   };
@@ -95,19 +99,42 @@ function App() {
     }
   };
 
+  const handlePrevious = () => {
+    if (currentEventIndex === 1) {
+
+    } else if (currentEventIndex === null) {
+
+    } else {
+      setCurrentEventIndex(currentEventIndex - 1);
+    }
+  };
+
   return (
     <div className="m-4">
-      <ScoreBoard teamA={team[0]}
-                  teamB={team[1]} />
 
-      <button
-        className="border border-black p-6 bg-red-200"
-        onClick={handleNext}
-      >
-        Press Me!
-      </button>
+      {/* SCOREBOARD */}
+      <ScoreBoard teamA={team[0]} teamB={team[1]} />
 
-      <div>
+
+      {/* BUTTONS */}
+      <div className='flex border border-black justify-center'>
+        <button
+          className="border border-black p-6 bg-red-200"
+          onClick={handlePrevious}
+        >
+          Previous
+        </button>
+
+        <button
+          className="border border-black p-6 bg-red-200"
+          onClick={handleNext}
+        >
+          Next
+        </button>
+      </div>
+
+      {/* EVENT INDEX */}
+      <div className="border border-black text-center text-3xl m-2">
         {currentEvent ? (
           <p>{currentEvent.index}</p>
         ) : (
@@ -115,28 +142,26 @@ function App() {
         )}
       </div>
 
-      <div className="flex items-center border border-black">
-        <PlayerList teamName={team[0]}
-                    playerList={lineupA} />
 
+      <div className="flex items-center border border-black">
+        {/* PLAYER LIST A */}
+        <PlayerList teamName={team[0]} playerList={lineupA} />
+
+        {/* FOOTBALL FIELD */}
         <FootballField playerListA={lineupA} playerListB={lineupB} />
 
-        <PlayerList teamName={team[1]}
-                    playerList={lineupB} />
+        {/* PLAYER LIST B */}
+        <PlayerList teamName={team[1]} playerList={lineupB} />
       </div>
 
       <div className="m-4">
+        {/* EVENT CARD */}
         {currentEvent ? (
           <EventCard currentEvent={currentEvent}></EventCard>
         ) : (
           <p>Event not available yet. </p>
-        )
-
-        }
-        
+        )}
       </div>
-
-
     </div>
   );
 }

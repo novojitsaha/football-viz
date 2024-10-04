@@ -2,8 +2,7 @@ import React from "react";
 
 const EventCard = ({ currentEvent }: { currentEvent: any }) => {
     
-    const keys = Object.keys(currentEvent);
-    
+    const keys: string[] = Object.keys(currentEvent);
   
     return (
         <div className="bg-gray-200  mx-auto w-64 border border-black rounded-lg text-center">
@@ -11,9 +10,9 @@ const EventCard = ({ currentEvent }: { currentEvent: any }) => {
         <div>
             <ul>
  
-                {keys.map((k,v) => 
+                {keys.map((k) => 
                     (
-                        <li key={k}>{k}:{v}</li>
+                        <li key={k}>{k}: {JSON.stringify(currentEvent[k])}</li>
                     )
                 )}
             </ul>
