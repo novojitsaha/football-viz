@@ -3,7 +3,7 @@ type Player = {
   name: string,
   position: string,
   coordinates: number[],
-  jersey: number
+  jersey: number,
 
 };
 

@@ -3,8 +3,9 @@ import PlayerList from "./components/PlayerList";
 import FootballField from "./components/FootballField";
 import EventCard from "./components/EventCard";
 import Player from "./types/player";
+import MatchSelection from "./components/MatchSelection";
 import { useEffect, useState } from "react";
-import eventList from "./assets/15946.json";
+import eventList from "./assets/events/15946.json";
 import {
   positionCoordinatesKey,
   positionCoordinates,
@@ -25,11 +26,66 @@ function App() {
     null
   );
 
+  // State to track ball possession
+  const [possession, setPossession] = useState<null | any>(null);
+
+
+
+    // Route props to the corresponding component based on event type
+    const controller = (currentEvent: any | null) => {
+      if (!currentEvent) return;
+      setPossession(currentEvent.possession_team.name)
+      switch (currentEvent.type.name) {
+        case "Starting XI":
+          
+          // Get player list from the event
+          const playerList: Player[] = [];
+          currentEvent.tactics.lineup.forEach((object: any) => {
+            const temp: Player = {
+              id: object.player.id,
+              name: object.player.name,
+              position: object.position.name,
+              coordinates:
+                positionCoordinates[
+                  object.position.name as positionCoordinatesKey
+                ],
+              jersey: object.jersey_number,
+            };
+            playerList.push(temp);
+          });
+  
+          if (lineupA.length === 0) {
+            setLineupA(playerList);
+            setTeam([...team, currentEvent.team.name]);
+          } else if (lineupB.length === 0) {
+            // change starting  x-coordinates to move players to other side of the field
+            const updatedPlayerList = playerList.map(
+              (player): Player => ({
+                ...player,
+                coordinates: [120 - player.coordinates[0], player.coordinates[1]],
+              })
+            );
+            setLineupB(updatedPlayerList);
+            setTeam([...team, currentEvent.team.name]);
+          }
+          break;
+  
+        case "Half Start":
+  
+  
+          break;
+  
+        case "Pass":
+          
+          
+          break;
+      }
+    };
+
   // Effect to run whenever the currentEventIndex changes
   useEffect(() => {
-    console.log("current event index: ", currentEventIndex);
-
     console.log("current event: ", currentEvent);
+    console.log('posession team: ', possession);
 
     // Return to index 1 if currentEventIndex goes out of bounds
     if (currentEventIndex !== null && currentEventIndex > eventList.length) {
@@ -42,52 +98,6 @@ function App() {
   // Get the current object based on the currentEventIndex
   const currentEvent = eventList.find((e) => e.index === currentEventIndex);
 
-  // Route props to the corresponding component based on event type
-  const controller = (currentEvent: any | null) => {
-    if (!currentEvent) return;
-
-    switch (currentEvent.type.name) {
-      case "Starting XI":
-        // Get player list from the event
-        const playerList: Player[] = [];
-        currentEvent.tactics.lineup.forEach((object: any) => {
-          const temp: Player = {
-            id: object.player.id,
-            name: object.player.name,
-            position: object.position.name,
-            coordinates:
-              positionCoordinates[
-                object.position.name as positionCoordinatesKey
-              ],
-            jersey: object.jersey_number,
-          };
-          playerList.push(temp);
-        });
-
-        if (lineupA.length === 0) {
-          setLineupA(playerList);
-          setTeam([...team, currentEvent.team.name]);
-        } else if (lineupB.length === 0) {
-          // change starting  x-coordinates to move players to other side of the field
-          const updatedPlayerList = playerList.map(
-            (player): Player => ({
-              ...player,
-              coordinates: [120 - player.coordinates[0], player.coordinates[1]],
-            })
-          );
-          setLineupB(updatedPlayerList);
-          setTeam([...team, currentEvent.team.name]);
-        }
-        break;
-
-      case "Half Start":
-        break;
-
-      case "Pass":
-        
-        break;
-    }
-  };
 
   // Function to handle button click and iterate to the next event
 
@@ -100,13 +110,11 @@ function App() {
   };
 
   const handlePrevious = () => {
-    if (currentEventIndex === 1) {
-
-    } else if (currentEventIndex === null) {
-
-    } else {
-      setCurrentEventIndex(currentEventIndex - 1);
-    }
+    if (currentEventIndex === 1 || currentEventIndex === null) {
+      return;
+    } 
+    setCurrentEventIndex(currentEventIndex - 1);
+    
   };
 
   return (
@@ -114,7 +122,8 @@ function App() {
 
       {/* SCOREBOARD */}
       <ScoreBoard teamA={team[0]} teamB={team[1]} />
-
+      {/* MATCH SELECTION */}
+      <MatchSelection/>
 
       {/* BUTTONS */}
       <div className='flex border border-black justify-center'>
