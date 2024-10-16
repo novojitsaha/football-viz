@@ -18,8 +18,8 @@ type Competition = {
 
 type Match = {
   match_id: number;
-  match_date: string;
-  kick_off: string;
+  match_date: string; // "YYYY-MM-DD"
+  kick_off: string; // "HH:mm:ss.SSS"
   competition: {
     competition_id: number;
     country_name: string;
@@ -29,13 +29,13 @@ type Match = {
     season_id: number;
     season_name: string;
   };
-  home_team: Team;
-  away_team: Team;
+  home_team: HomeTeam;
+  away_team: AwayTeam;
   home_score: number;
   away_score: number;
   match_status: string;
   match_status_360: string | null;
-  last_updated: string;
+  last_updated: string; // ISO 8601 format
   last_updated_360: string | null;
   metadata: {
     data_version: string;
@@ -59,11 +59,20 @@ type Match = {
   };
 };
 
-type Team = {
+type HomeTeam = {
   home_team_id: number;
   home_team_name: string;
   home_team_gender: string;
   home_team_group: string | null;
+  country: Country;
+  managers: Manager[];
+};
+
+type AwayTeam = {
+  away_team_id: number;
+  away_team_name: string;
+  away_team_gender: string;
+  away_team_group: string | null;
   country: Country;
   managers: Manager[];
 };
@@ -80,6 +89,7 @@ type Country = {
   id: number;
   name: string;
 };
+
 const MatchSelection: React.FC = () => {
   // State to track competition
   const [competitionId, setCompetitionId] = useState<number | undefined>(
@@ -94,8 +104,14 @@ const MatchSelection: React.FC = () => {
   // State to track season_name for each competition
   const [seasonId, setSeasonId] = useState<number | undefined>(undefined);
 
+  // State to track match ID
+  const [matchId, setMatchId] = useState<number | undefined>(undefined);
+
   // State to track available matches for a competition season
   const [matchIdArr, setMatchIdArr] = useState<number[] | undefined>(undefined);
+
+  // State to track match file
+  const [matchFile, setMatchFile] = useState<Match[] | undefined>(undefined);
 
   // set of available competitions
   const competitionIdSet: number[] = Array.from(
@@ -111,15 +127,19 @@ const MatchSelection: React.FC = () => {
     seasons[competitionId] = seasonIds;
   });
 
-  // State to track match ID
-  const [matchId, setMatchId] = useState<number | undefined>(undefined);
-
   // competition change handler
   const handleCompetitionChange = (
     event: React.ChangeEvent<HTMLSelectElement>
   ) => {
     setCompetitionId(Number(event.target.value));
+
+    setSeasonId(undefined)
     setSeasonIdArr(seasons[Number(event.target.value)]);
+    
+    
+    setMatchId(undefined);
+    setMatchIdArr(undefined);
+
   };
 
   // season change handler
@@ -128,19 +148,19 @@ const MatchSelection: React.FC = () => {
   ) => {
     const seasonIdChange = Number(event.target.value);
     setSeasonId(seasonIdChange);
- 
 
     const matchDirectory: string = `../assets/data/matches/${competitionId}/${seasonIdChange}.json`;
 
-    console.log('matchDirectory: ', matchDirectory)
     const tempMatchIdArr: number[] = [];
 
     try {
-      const matchDataObject: {default: Match[]} = await import(matchDirectory);
+      const matchDataObject: { default: Match[] } = await import(
+        matchDirectory
+      );
 
       const matchDataDefault: Match[] = matchDataObject.default;
 
-      // console.log('matchDataType: ', typeof(ma));
+      setMatchFile(matchDataDefault);
 
       matchDataDefault.forEach((match: Match) => {
         tempMatchIdArr.push(match.match_id);
@@ -148,10 +168,13 @@ const MatchSelection: React.FC = () => {
     } catch (error) {
       console.log(error);
     }
+
     setMatchIdArr(tempMatchIdArr);
   };
 
-  const handleMatchChange = (event: React.ChangeEvent<HTMLSelectElement>) => {};
+  const handleMatchChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    setMatchId(Number(event.target.value));
+  };
 
   return (
     <>
@@ -207,9 +230,18 @@ const MatchSelection: React.FC = () => {
             <option value="" disabled>
               Select Match
             </option>
-            {matchIdArr?.map((matchId: number) => (
-              <option value={matchId} key={matchId}>{matchId}</option>
-            ))}
+            {matchIdArr?.map((matchId: number) => {
+              const match = matchFile?.find(
+                (match: Match) => match.match_id === matchId
+              );
+
+              return (
+                <option value={matchId} key={matchId}>
+                  {match?.home_team.home_team_name} -{" "}
+                  {match?.away_team.away_team_name}
+                </option>
+              );
+            })}
           </select>
         </div>
       </div>
