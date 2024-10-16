@@ -5,7 +5,7 @@ import EventCard from "./components/EventCard";
 import Player from "./types/player";
 import MatchSelection from "./components/MatchSelection";
 import { useEffect, useState } from "react";
-import eventList from "./assets/events/15946.json";
+import eventList from "./assets/data/events/15946.json";
 import {
   positionCoordinatesKey,
   positionCoordinates,
