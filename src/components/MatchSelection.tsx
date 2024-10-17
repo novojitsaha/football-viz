@@ -35,7 +35,7 @@ type Match = {
   away_score: number;
   match_status: string;
   match_status_360: string | null;
-  last_updated: string; // ISO 8601 format
+  last_updated: string; 
   last_updated_360: string | null;
   metadata: {
     data_version: string;
@@ -90,7 +90,11 @@ type Country = {
   name: string;
 };
 
-const MatchSelection: React.FC = () => {
+interface MatchSelectionProps {
+  setSharedMatchId: React.Dispatch<React.SetStateAction<number | undefined>>;
+}
+
+const MatchSelection: React.FC<MatchSelectionProps> = ({setSharedMatchId}) => {
   // State to track competition
   const [competitionId, setCompetitionId] = useState<number | undefined>(
     undefined
@@ -138,6 +142,7 @@ const MatchSelection: React.FC = () => {
     
     
     setMatchId(undefined);
+    setSharedMatchId(undefined);
     setMatchIdArr(undefined);
 
   };
@@ -169,11 +174,14 @@ const MatchSelection: React.FC = () => {
       console.log(error);
     }
 
+    setMatchId(undefined);
+    setSharedMatchId(undefined);
     setMatchIdArr(tempMatchIdArr);
   };
 
   const handleMatchChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     setMatchId(Number(event.target.value));
+    setSharedMatchId(Number(event.target.value));
   };
 
   return (

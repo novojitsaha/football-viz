@@ -12,6 +12,12 @@ import {
 } from "./utils/positionCoordinates";
 
 function App() {
+
+  // State to track matchId
+  const [sharedMatchId, setSharedMatchId] = useState<number | undefined>(undefined);
+
+  console.log('sharedMatchId: ', sharedMatchId);
+
   // State to track team names
   const [team, setTeam] = useState<string[]>([]);
 
@@ -123,7 +129,7 @@ function App() {
       {/* SCOREBOARD */}
       <ScoreBoard teamA={team[0]} teamB={team[1]} />
       {/* MATCH SELECTION */}
-      <MatchSelection/>
+      <MatchSelection setSharedMatchId={setSharedMatchId}/>
 
       {/* BUTTONS */}
       <div className='flex border border-black justify-center'>
