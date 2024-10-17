@@ -1,100 +1,13 @@
 import React, { useState } from "react";
 import competitions from "../assets/data/competitions.json";
-
-type Competition = {
-  competition_id: number;
-  season_id: number;
-  country_name: string;
-  competition_name: string;
-  competition_gender: string;
-  competition_youth: boolean;
-  competition_international: boolean;
-  season_name: string;
-  match_updated: string;
-  match_updated_360: string | null;
-  match_available_360: string | null;
-  match_available: string;
-};
-
-type Match = {
-  match_id: number;
-  match_date: string; // "YYYY-MM-DD"
-  kick_off: string; // "HH:mm:ss.SSS"
-  competition: {
-    competition_id: number;
-    country_name: string;
-    competition_name: string;
-  };
-  season: {
-    season_id: number;
-    season_name: string;
-  };
-  home_team: HomeTeam;
-  away_team: AwayTeam;
-  home_score: number;
-  away_score: number;
-  match_status: string;
-  match_status_360: string | null;
-  last_updated: string; 
-  last_updated_360: string | null;
-  metadata: {
-    data_version: string;
-    shot_fidelity_version: string;
-    xy_fidelity_version: string;
-  };
-  match_week: number;
-  competition_stage: {
-    id: number;
-    name: string;
-  };
-  stadium: {
-    id: number;
-    name: string;
-    country: Country;
-  };
-  referee: {
-    id: number;
-    name: string;
-    country: Country;
-  };
-};
-
-type HomeTeam = {
-  home_team_id: number;
-  home_team_name: string;
-  home_team_gender: string;
-  home_team_group: string | null;
-  country: Country;
-  managers: Manager[];
-};
-
-type AwayTeam = {
-  away_team_id: number;
-  away_team_name: string;
-  away_team_gender: string;
-  away_team_group: string | null;
-  country: Country;
-  managers: Manager[];
-};
-
-type Manager = {
-  id: number;
-  name: string;
-  nickname: string | null;
-  dob: string; // "YYYY-MM-DD"
-  country: Country;
-};
-
-type Country = {
-  id: number;
-  name: string;
-};
+import Competition from "../types/competition";
+import Match from "../types/match";
 
 interface MatchSelectionProps {
-  setSharedMatchId: React.Dispatch<React.SetStateAction<number | undefined>>;
+  setSharedMatch: React.Dispatch<React.SetStateAction<Match | undefined>>;
 }
 
-const MatchSelection: React.FC<MatchSelectionProps> = ({setSharedMatchId}) => {
+const MatchSelection: React.FC<MatchSelectionProps> = ({ setSharedMatch }) => {
   // State to track competition
   const [competitionId, setCompetitionId] = useState<number | undefined>(
     undefined
@@ -114,8 +27,9 @@ const MatchSelection: React.FC<MatchSelectionProps> = ({setSharedMatchId}) => {
   // State to track available matches for a competition season
   const [matchIdArr, setMatchIdArr] = useState<number[] | undefined>(undefined);
 
-  // State to track match file
-  const [matchFile, setMatchFile] = useState<Match[] | undefined>(undefined);
+  // State to track match list
+  const [matchList, setMatchList] = useState<Match[] | undefined>(undefined);
+
 
   // set of available competitions
   const competitionIdSet: number[] = Array.from(
@@ -137,14 +51,12 @@ const MatchSelection: React.FC<MatchSelectionProps> = ({setSharedMatchId}) => {
   ) => {
     setCompetitionId(Number(event.target.value));
 
-    setSeasonId(undefined)
+    setSeasonId(undefined);
     setSeasonIdArr(seasons[Number(event.target.value)]);
-    
-    
-    setMatchId(undefined);
-    setSharedMatchId(undefined);
-    setMatchIdArr(undefined);
 
+    setMatchId(undefined);
+    setSharedMatch(undefined);
+    setMatchIdArr(undefined);
   };
 
   // season change handler
@@ -156,16 +68,15 @@ const MatchSelection: React.FC<MatchSelectionProps> = ({setSharedMatchId}) => {
 
     const matchDirectory: string = `../assets/data/matches/${competitionId}/${seasonIdChange}.json`;
 
+
     const tempMatchIdArr: number[] = [];
 
     try {
-      const matchDataObject: { default: Match[] } = await import(
-        matchDirectory
-      );
+      const matchList: { default: Match[] } = await import(matchDirectory);
 
-      const matchDataDefault: Match[] = matchDataObject.default;
+      const matchDataDefault: Match[] = matchList.default;
 
-      setMatchFile(matchDataDefault);
+      setMatchList(matchDataDefault);
 
       matchDataDefault.forEach((match: Match) => {
         tempMatchIdArr.push(match.match_id);
@@ -175,18 +86,23 @@ const MatchSelection: React.FC<MatchSelectionProps> = ({setSharedMatchId}) => {
     }
 
     setMatchId(undefined);
-    setSharedMatchId(undefined);
+    setSharedMatch(undefined);
     setMatchIdArr(tempMatchIdArr);
   };
 
   const handleMatchChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     setMatchId(Number(event.target.value));
-    setSharedMatchId(Number(event.target.value));
+
+    const match: Match | undefined = matchList?.find(
+      (match) => match.match_id === (Number(event.target.value))
+    );
+
+    setSharedMatch(match);
   };
 
   return (
     <>
-      <div className="flex border border-black m-2 justify-center">
+      <div className="flex border border-black my-2 justify-center">
         <label className="m-2 font-bold">Select match:</label>
         <div className="">
           <select
@@ -239,7 +155,7 @@ const MatchSelection: React.FC<MatchSelectionProps> = ({setSharedMatchId}) => {
               Select Match
             </option>
             {matchIdArr?.map((matchId: number) => {
-              const match = matchFile?.find(
+              const match = matchList?.find(
                 (match: Match) => match.match_id === matchId
               );
 
