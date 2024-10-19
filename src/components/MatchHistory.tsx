@@ -8,32 +8,33 @@ interface MatchHistoryProps {
 const MatchHistory: React.FC<MatchHistoryProps> = ({ sharedMatch }) => {
   return (
     <>
-      <div className="border border-black my-2 p-2">
+      <div className=" my-2 p-2">
         <div className="font-bold text-center text-xl">Match History</div>
         {sharedMatch ? (
-          <>
+          <div className="bg-gray-200 rounded-xl">
             <div className="text-center p-2">
-              <span className="font-bold">Time and Location:</span> {sharedMatch.kick_off} at{" "}
-              {sharedMatch.match_date} in {sharedMatch.stadium.name} (
-              {sharedMatch.stadium.country.name})
+              {/* TIME AND LOCATION */}
               <div>
-                <span className="font-bold">Referee:</span> {sharedMatch.referee.name} (
-                {sharedMatch.referee.country.name})
+                <span className="font-bold">Time and Location:</span>{" "}
+                {sharedMatch.kick_off} at {sharedMatch.match_date} in{" "}
+                {sharedMatch.stadium.name} ({sharedMatch.stadium.country.name})
+              </div>
+              {/* REFEREE */}
+              <div>
+                <span className="font-bold">Referee:</span>{" "}
+                {sharedMatch.referee.name} ({sharedMatch.referee.country.name})
+              </div>
+              {/* FINAL SCORE */}
+              <div>
+                <span className="font-bold">Final Score: </span>
+                {sharedMatch.home_team.home_team_name} ({sharedMatch.home_score}{" "}
+                - {sharedMatch.away_score}){" "}
+                {sharedMatch.away_team.away_team_name}
               </div>
             </div>
-            <div className="flex justify-center">
-              <div className="p-2">
-                {sharedMatch.home_team.home_team_name} (
-                {sharedMatch.home_team.country.name})
-              </div>
-              <div className="p-2">
-                {sharedMatch.away_team.away_team_name} (
-                {sharedMatch.away_team.country.name})
-              </div>
-            </div>
-          </>
+          </div>
         ) : (
-          <p>Select Match to view details.</p>
+          <p className="text-center italic">Select match to view details.</p>
         )}
       </div>
     </>

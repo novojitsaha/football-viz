@@ -30,13 +30,12 @@ const MatchSelection: React.FC<MatchSelectionProps> = ({ setSharedMatch }) => {
   // State to track match list
   const [matchList, setMatchList] = useState<Match[] | undefined>(undefined);
 
-
   // set of available competitions
   const competitionIdSet: number[] = Array.from(
     new Set(competitions.map((item: Competition) => item.competition_id))
   );
 
-  // list of available season_id for each competition: {competition_name: [season_name]}
+  // list of available season_id for each competition: {competition_id: [season_id]}
   const seasons: { [key: number]: number[] } = {};
   competitionIdSet.forEach((competitionId) => {
     const seasonIds = competitions
@@ -68,7 +67,6 @@ const MatchSelection: React.FC<MatchSelectionProps> = ({ setSharedMatch }) => {
 
     const matchDirectory: string = `../assets/data/matches/${competitionId}/${seasonIdChange}.json`;
 
-
     const tempMatchIdArr: number[] = [];
 
     try {
@@ -94,7 +92,7 @@ const MatchSelection: React.FC<MatchSelectionProps> = ({ setSharedMatch }) => {
     setMatchId(Number(event.target.value));
 
     const match: Match | undefined = matchList?.find(
-      (match) => match.match_id === (Number(event.target.value))
+      (match) => match.match_id === Number(event.target.value)
     );
 
     setSharedMatch(match);
@@ -102,7 +100,7 @@ const MatchSelection: React.FC<MatchSelectionProps> = ({ setSharedMatch }) => {
 
   return (
     <>
-      <div className="flex border border-black my-2 justify-center">
+      <div className="flex my-2 justify-center">
         <label className="m-2 font-bold">Select match:</label>
         <div className="">
           <select

@@ -15,111 +15,80 @@ import Match from "./types/match";
 
 function App() {
   // State to track matchId
-  const [sharedMatch, setSharedMatch] = useState<Match | undefined>(
-    undefined
-  );
+  const [sharedMatch, setSharedMatch] = useState<Match | undefined>(undefined);
 
+  // State to track the eventArr
+  const [eventArr, setEventArr] = useState<any[] | undefined>(undefined);
 
-  // State to track team names
-  const [team, setTeam] = useState<string[]>([]);
+  // // State to track the current event index
+  const [eventIndex, setEventIndex] = useState<number | undefined>(undefined);
 
-  // State to track player coordinates of team A
-  const [lineupA, setLineupA] = useState<Player[]>([]);
+  const fetchEventArr = async (
+    sharedMatch: Match | undefined,
+    eventFileDir: string | undefined
+  ): Promise<any[] | undefined> => {
+    const eventDir: string = `./assets/data/events/${eventFileDir}.json`;
 
-  // State to track player coordinates of team B
-  const [lineupB, setLineupB] = useState<Player[]>([]);
+    if (!sharedMatch) return;
 
-  // State to track the current event index
-  const [currentEventIndex, setCurrentEventIndex] = useState<null | number>(
-    null
-  );
+    try {
+      const getEventFile: { default: any[] } = await import(eventDir);
 
-  // State to track ball possession
-  const [possession, setPossession] = useState<null | any>(null);
+      setEventArr(getEventFile.default);
 
-  // Route props to the corresponding component based on event type
-  const controller = (currentEvent: any | null) => {
-    if (!currentEvent) return;
-    setPossession(currentEvent.possession_team.name);
-    switch (currentEvent.type.name) {
-      case "Starting XI":
-        // Get player list from the event
-        const playerList: Player[] = [];
-        currentEvent.tactics.lineup.forEach((object: any) => {
-          const temp: Player = {
-            id: object.player.id,
-            name: object.player.name,
-            position: object.position.name,
-            coordinates:
-              positionCoordinates[
-                object.position.name as positionCoordinatesKey
-              ],
-            jersey: object.jersey_number,
-          };
-          playerList.push(temp);
-        });
-
-        if (lineupA.length === 0) {
-          setLineupA(playerList);
-          setTeam([...team, currentEvent.team.name]);
-        } else if (lineupB.length === 0) {
-          // change starting  x-coordinates to move players to other side of the field
-          const updatedPlayerList = playerList.map(
-            (player): Player => ({
-              ...player,
-              coordinates: [120 - player.coordinates[0], player.coordinates[1]],
-            })
-          );
-          setLineupB(updatedPlayerList);
-          setTeam([...team, currentEvent.team.name]);
-        }
-        break;
-
-      case "Half Start":
-        break;
-
-      case "Pass":
-        break;
+      return getEventFile.default;
+    } catch (e) {
+      console.log(e);
+      return undefined;
     }
   };
 
+  // Route props to the corresponding component based on event type
+  const controller = (eventArr: any[] | undefined) => {
+    if (!eventArr) return; // return if eventFile is undefined
+  };
+
+  // Fetch new eventArr and reset currentEventIndex to 1 whenever sharedMatch changes
+  useEffect(() => {
+    // Get event file id from sharedMatch match_id
+    const eventFileDir: string | undefined = sharedMatch?.match_id.toString();
+
+    fetchEventArr(sharedMatch, eventFileDir); // reset eventArr state when sharedMatch changes
+
+    setEventIndex(1); // reset event index when match is reset
+  }, [sharedMatch]);
+
   // Effect to run whenever the currentEventIndex changes
   useEffect(() => {
-    console.log("current event: ", currentEvent);
-    console.log("posession team: ", possession);
-
     // Return to index 1 if currentEventIndex goes out of bounds
-    if (currentEventIndex !== null && currentEventIndex > eventList.length) {
-      setCurrentEventIndex(1);
+    if (eventIndex !== undefined && eventIndex > eventList.length) {
+      setEventIndex(1);
     }
 
-    controller(currentEvent);
-  }, [currentEventIndex]);
-
-  // Get the current object based on the currentEventIndex
-  const currentEvent = eventList.find((e) => e.index === currentEventIndex);
+    controller(eventArr);
+  }, [eventIndex]);
 
   // Function to handle button click and iterate to the next event
 
   const handleNext = () => {
-    if (currentEventIndex !== null) {
-      setCurrentEventIndex(currentEventIndex + 1);
+    if (!eventIndex) {
+      setEventIndex(eventIndex! + 1);
     } else {
-      setCurrentEventIndex(1);
+      setEventIndex(1); // if index is undefined, it's set to 1
     }
   };
 
   const handlePrevious = () => {
-    if (currentEventIndex === 1 || currentEventIndex === null) {
+    if (eventIndex === 1 || eventIndex === undefined) {
       return;
     }
-    setCurrentEventIndex(currentEventIndex - 1);
+    setEventIndex(eventIndex! - 1);
   };
 
   return (
     <div className="m-4">
       {/* SCOREBOARD */}
-      <ScoreBoard teamA={team[0]} teamB={team[1]} />
+      {/* <ScoreBoard teamA={team[0]} teamB={team[1]} /> */}
       {/* MATCH SELECTION */}
       <MatchSelection setSharedMatch={setSharedMatch} />
       {/* MATCH HISTORY */}
@@ -143,32 +112,32 @@ function App() {
       </div>
 
       {/* EVENT INDEX */}
-      <div className="border border-black text-center text-3xl m-2">
+      {/* <div className="border border-black text-center text-3xl">
         {currentEvent ? (
           <p>{currentEvent.index}</p>
         ) : (
           <p>Press button to start iterating.</p>
         )}
-      </div>
+      </div> */}
 
       <div className="flex items-center border border-black">
         {/* PLAYER LIST A */}
-        <PlayerList teamName={team[0]} playerList={lineupA} />
+        {/* <PlayerList teamName={team[0]} playerList={lineupA} /> */}
 
         {/* FOOTBALL FIELD */}
-        <FootballField playerListA={lineupA} playerListB={lineupB} />
+        {/* <FootballField playerListA={lineupA} playerListB={lineupB} /> */}
 
         {/* PLAYER LIST B */}
-        <PlayerList teamName={team[1]} playerList={lineupB} />
+        {/* <PlayerList teamName={team[1]} playerList={lineupB} /> */}
       </div>
 
       <div className="m-4">
         {/* EVENT CARD */}
-        {currentEvent ? (
+        {/* {currentEvent ? (
           <EventCard currentEvent={currentEvent}></EventCard>
         ) : (
           <p>Event not available yet. </p>
-        )}
+        )} */}
       </div>
     </div>
   );
