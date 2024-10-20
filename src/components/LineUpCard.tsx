@@ -17,15 +17,19 @@ const PlayerList: React.FC<PlayerListProps> = ({ team }) => {
       <div className="text-center font-bold border-b border-black">
         {team?.name}
       </div>
+      {/* Formation */}
+      <div>
+        {team?.formation}
+      </div>
 
       {/* Manager */}
 
-      <div>
+      <div className="p-2">
         Manager: {team?.manager?.name} ({team?.manager?.country})
       </div>
 
       {/* Player List */}
-      <ul className="text-center">{players}</ul>
+      <ul className="text-center p-2">{players}</ul>
     </div>
   );
 };

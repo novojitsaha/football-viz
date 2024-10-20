@@ -2,8 +2,13 @@ import MatchSelection from "./components/MatchSelection";
 import MatchHistory from "./components/MatchHistory";
 import { useEffect, useState } from "react";
 import Team from "./types/team";
-import LineUpCard from "./components/LineUpCard";;
+import LineUpCard from "./components/LineUpCard";
 import Match from "./types/match";
+import EventCard from "./components/EventCard";
+import FootballField from "./components/FootballField";
+import { positionCoordinates } from "./utils/positionCoordinates";
+import controller from "./utils/controller";
+import calcPlayerLocation from "./utils/calcPlayerLocation";
 
 function App() {
   // State to track matchId
@@ -41,17 +46,14 @@ function App() {
     }
   };
 
-  // Route props to the corresponding component based on event type
-  const controller = (eventArr: any[] | undefined) => {
-    if (!eventArr) return; // return if eventFile is undefined
-  };
+
 
   // Fetch new eventArr and reset currentEventIndex to 1 whenever sharedMatch changes
   useEffect(() => {
     // Get event file id from sharedMatch match_id
     const eventFileDir: string | undefined = sharedMatch?.match_id.toString();
+    setEventArr(undefined); // clear eventArr when sharedMatch is updated
     fetchEventArr(sharedMatch, eventFileDir); // reset eventArr state when sharedMatch changes
-
   }, [sharedMatch]);
 
   // Effect to run when eventArr is updated
@@ -60,17 +62,15 @@ function App() {
     // set home team
     const homeTeam: Team = {
       name: sharedMatch?.home_team.home_team_name,
-      formation: eventArr![0].tactics.formation,
+      formation: eventArr[0].tactics.formation,
       players: Array.from(
-        eventArr![0].tactics.lineup.map(
-          (o: any) => ({
-            "id": o.player.id,
-            "name": o.player.name,
-            "position": o.position.name,
-            "coordinates": undefined,
-            "jersey": o.jersey_number
-          })
-        )
+        eventArr[0].tactics.lineup.map((o: any) => ({
+          id: o.player.id,
+          name: o.player.name,
+          position: o.position.name,
+          coordinates: positionCoordinates[o.position.name],
+          jersey: o.jersey_number,
+        }))
       ),
       manager: {
         name: sharedMatch?.home_team.managers?.[0]?.name || "Unknown Manager",
@@ -83,6 +83,15 @@ function App() {
     const awayTeam: Team = {
       name: sharedMatch?.away_team.away_team_name,
       formation: eventArr![1].tactics.formation,
+      players: Array.from(
+        eventArr![1].tactics.lineup.map((o: any) => ({
+          id: o.player.id,
+          name: o.player.name,
+          position: o.position.name,
+          coordinates: positionCoordinates[o.position.name],
+          jersey: o.jersey_number,
+        }))
+      ),
       manager: {
         name: sharedMatch?.away_team.managers?.[0]?.name || "Unknown Manager",
         country: sharedMatch?.away_team.managers?.[0]?.country.name || "",
@@ -90,8 +99,6 @@ function App() {
     };
     setAwayTeam(awayTeam);
     setEventIndex(0); // reset event index when match is reset
-    console.log(homeTeam)
-
   }, [eventArr]);
 
   // Effect to run whenever the currentEventIndex changes
@@ -103,6 +110,8 @@ function App() {
     }
 
     controller(eventArr);
+
+
   }, [eventIndex]);
 
   // Function to handle button click and iterate to the next event
@@ -157,7 +166,7 @@ function App() {
       </div>
 
       <div className="flex items-center border border-black">
-        {/* PLAYER LIST A */}
+        {/* HOME TEAM CARD*/}
 
         {sharedMatch ? (
           <LineUpCard team={homeTeam} />
@@ -166,19 +175,26 @@ function App() {
         )}
 
         {/* FOOTBALL FIELD */}
-        {/* <FootballField playerListA={lineupA} playerListB={lineupB} /> */}
+        {eventArr ? (
+          <FootballField
+            homePlayers={homeTeam?.players}
+            awayPlayers={awayTeam?.players}
+          />
+        ) : (
+          <p>Event not available yet. </p>
+        )}
 
-        {/* PLAYER LIST B */}
-        {/* <PlayerList teamName={team[1]} playerList={lineupB} /> */}
+        {/* AWAY TEAM CARD */}
+        {sharedMatch ? <LineUpCard team={awayTeam} /> : <p></p>}
       </div>
 
       <div className="m-4">
         {/* EVENT CARD */}
-        {/* {currentEvent ? (
-          <EventCard currentEvent={currentEvent}></EventCard>
+        {eventArr ? (
+          <EventCard currentEvent={eventArr[eventIndex]}></EventCard>
         ) : (
           <p>Event not available yet. </p>
-        )} */}
+        )}
       </div>
     </div>
   );

@@ -1,5 +1,3 @@
-export type positionCoordinatesKey = keyof typeof  positionCoordinates;
-// Starting coordinates of each position in the form [x, y]
 export const positionCoordinates = {
 
     "Goalkeeper": [4,40],
