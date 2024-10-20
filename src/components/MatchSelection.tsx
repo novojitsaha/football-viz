@@ -96,6 +96,7 @@ const MatchSelection: React.FC<MatchSelectionProps> = ({ setSharedMatch }) => {
     );
 
     setSharedMatch(match);
+
   };
 
   return (

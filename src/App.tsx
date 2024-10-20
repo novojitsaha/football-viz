@@ -1,16 +1,8 @@
-import ScoreBoard from "./components/ScoreBoard";
-import PlayerList from "./components/PlayerList";
-import FootballField from "./components/FootballField";
-import EventCard from "./components/EventCard";
-import Player from "./types/player";
 import MatchSelection from "./components/MatchSelection";
 import MatchHistory from "./components/MatchHistory";
 import { useEffect, useState } from "react";
-import eventList from "./assets/data/events/15946.json";
-import {
-  positionCoordinatesKey,
-  positionCoordinates,
-} from "./utils/positionCoordinates";
+import Team from "./types/team";
+import LineUpCard from "./components/LineUpCard";;
 import Match from "./types/match";
 
 function App() {
@@ -20,8 +12,14 @@ function App() {
   // State to track the eventArr
   const [eventArr, setEventArr] = useState<any[] | undefined>(undefined);
 
-  // // State to track the current event index
-  const [eventIndex, setEventIndex] = useState<number | undefined>(undefined);
+  // State to track the current event index
+  const [eventIndex, setEventIndex] = useState<number>(0);
+
+  // State to track Home Team
+  const [homeTeam, setHomeTeam] = useState<Team | undefined>(undefined);
+
+  // State to track Away Team
+  const [awayTeam, setAwayTeam] = useState<Team | undefined>(undefined);
 
   const fetchEventArr = async (
     sharedMatch: Match | undefined,
@@ -52,17 +50,56 @@ function App() {
   useEffect(() => {
     // Get event file id from sharedMatch match_id
     const eventFileDir: string | undefined = sharedMatch?.match_id.toString();
-
     fetchEventArr(sharedMatch, eventFileDir); // reset eventArr state when sharedMatch changes
 
-    setEventIndex(1); // reset event index when match is reset
   }, [sharedMatch]);
+
+  // Effect to run when eventArr is updated
+  useEffect(() => {
+    if (!eventArr) return;
+    // set home team
+    const homeTeam: Team = {
+      name: sharedMatch?.home_team.home_team_name,
+      formation: eventArr![0].tactics.formation,
+      players: Array.from(
+        eventArr![0].tactics.lineup.map(
+          (o: any) => ({
+            "id": o.player.id,
+            "name": o.player.name,
+            "position": o.position.name,
+            "coordinates": undefined,
+            "jersey": o.jersey_number
+          })
+        )
+      ),
+      manager: {
+        name: sharedMatch?.home_team.managers?.[0]?.name || "Unknown Manager",
+        country: sharedMatch?.home_team.managers?.[0]?.country.name || "",
+      },
+    };
+    setHomeTeam(homeTeam);
+
+    // set away team
+    const awayTeam: Team = {
+      name: sharedMatch?.away_team.away_team_name,
+      formation: eventArr![1].tactics.formation,
+      manager: {
+        name: sharedMatch?.away_team.managers?.[0]?.name || "Unknown Manager",
+        country: sharedMatch?.away_team.managers?.[0]?.country.name || "",
+      },
+    };
+    setAwayTeam(awayTeam);
+    setEventIndex(0); // reset event index when match is reset
+    console.log(homeTeam)
+
+  }, [eventArr]);
 
   // Effect to run whenever the currentEventIndex changes
   useEffect(() => {
-    // Return to index 1 if currentEventIndex goes out of bounds
-    if (eventIndex !== undefined && eventIndex > eventList.length) {
-      setEventIndex(1);
+    if (!eventArr) return; // return if eventArr is undefined
+    // Reset to index 1 if currentEventIndex goes out of bounds
+    if (eventIndex > eventArr!.length) {
+      setEventIndex(0);
     }
 
     controller(eventArr);
@@ -71,15 +108,14 @@ function App() {
   // Function to handle button click and iterate to the next event
 
   const handleNext = () => {
-    if (!eventIndex) {
-      setEventIndex(eventIndex! + 1);
-    } else {
-      setEventIndex(1); // if index is undefined, it's set to 1
-    }
+    if (!eventArr) return; // return if eventArr is not set yet
+
+    setEventIndex(eventIndex + 1);
   };
 
   const handlePrevious = () => {
-    if (eventIndex === 1 || eventIndex === undefined) {
+    if (!eventArr) return; // return if eventArr is not set yet
+    if (eventIndex === 0) {
       return;
     }
     setEventIndex(eventIndex! - 1);
@@ -112,17 +148,22 @@ function App() {
       </div>
 
       {/* EVENT INDEX */}
-      {/* <div className="border border-black text-center text-3xl">
-        {currentEvent ? (
-          <p>{currentEvent.index}</p>
+      <div className="border border-black text-center text-3xl">
+        {eventArr ? (
+          <p>Index: {eventIndex}</p>
         ) : (
-          <p>Press button to start iterating.</p>
+          <p className="italic">Select Match to start iterating.</p>
         )}
-      </div> */}
+      </div>
 
       <div className="flex items-center border border-black">
         {/* PLAYER LIST A */}
-        {/* <PlayerList teamName={team[0]} playerList={lineupA} /> */}
+
+        {sharedMatch ? (
+          <LineUpCard team={homeTeam} />
+        ) : (
+          <p>Select match first</p>
+        )}
 
         {/* FOOTBALL FIELD */}
         {/* <FootballField playerListA={lineupA} playerListB={lineupB} /> */}
