@@ -16,11 +16,11 @@ export const positionCoordinates = {
     // Midfielders
     "Left Wing Back": [30,15], 
 
-    "Left Defensive Midfield": [25,28],  
+    "Left Defensive Midfield": [30,28],  
 
     "Center Defensive Midfield": [25,40],
 
-    "Right Defensive Midfield": [25,52],  
+    "Right Defensive Midfield": [30,52],  
 
     "Right Wing Back": [30,65],   
 
@@ -37,25 +37,25 @@ export const positionCoordinates = {
     "Right Midfield": [45,65],    
   
     // Attackers
-    "Left Wing": [50,75],    
+    "Left Wing": [45,15],    
 
     "Left Attacking Midfield": [50,70],   
 
-    "Center Attacking Midfield": [50,70], 
+    "Center Attacking Midfield": [50,45], 
 
     "Right Attacking Midfield": [50,70],   
 
-    "Right Wing": [50,75],    
+    "Right Wing": [45,75],    
 
 
     "Secondary Striker": [52,80],    
 
-    "Left Center Forward": [55,80],   
+    "Left Center Forward": [55,60],   
 
     "Striker": [55,80],
     
-    "Right Center Forward": [55,80],
+    "Right Center Forward": [55,30],
 
-    "Center Forward": [58,80]
+    "Center Forward": [58,40]
   };
   

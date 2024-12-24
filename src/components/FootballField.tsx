@@ -4,12 +4,14 @@ import Player from "../types/player";
 interface FootballFieldProps {
   homePlayers: Player[] | undefined;
   awayPlayers: Player[] | undefined;
+  event: any;
 }
 
 // prop prop.current
 const FootballField: React.FC<FootballFieldProps> = ({
   homePlayers,
   awayPlayers,
+  event,
 }) => {
   // persistent reference to the svg element
   const svgRef = useRef(null);
@@ -17,7 +19,7 @@ const FootballField: React.FC<FootballFieldProps> = ({
   useEffect(() => {
     d3.select(svgRef.current).selectAll("*").remove();
 
-    const scale: number = 5;
+    const scale: number = 6;
     const width: number = 120 * scale;
     const height: number = 80 * scale;
 
@@ -26,108 +28,224 @@ const FootballField: React.FC<FootballFieldProps> = ({
       .attr("width", width)
       .attr("height", height);
 
+    type LineCoordinate = { x1: number; y1: number; x2: number; y2: number };
+    type CircleCoordinate = { cx: number; cy: number; r: number };
 
-    // Collect starting coordinates of team A Players
-
-    const homePlayerCoordinates:
-      | { cx: number; cy: number; r: number }[]
-      | undefined = homePlayers?.map((p: any) => {
-      return { cx: p.coordinates[0], cy: p.coordinates[1], r: 2 };
-    });
-
-    // Collect starting coordinates of team A Players
-
-    const awayPlayerCoordinates:
-      | { cx: number; cy: number; r: number }[]
-      | undefined = awayPlayers?.map((p: any) => {
-      return { cx: (120 -p.coordinates[0]) , cy: p.coordinates[1], r: 2 };
-    });
-    console.log('homePlayerCoordinates', homePlayerCoordinates);
-    console.log('awayPlayerCoordinates', awayPlayerCoordinates);
-    
-    const coordinates = [
+    // football field line coordinates
+    const lineCoordinates: LineCoordinate[] = [
       // Outline of the pitch
       { x1: 0, y1: 0, x2: 120, y2: 0 },
-
       { x1: 0, y1: 0, x2: 0, y2: 80 },
-
       { x1: 120, y1: 0, x2: 120, y2: 80 },
-
       { x1: 0, y1: 80, x2: 120, y2: 80 },
-
       // Mid line
       { x1: 60, y1: 0, x2: 60, y2: 80 },
-
       // Penalty areas
       { x1: 0, y1: 18, x2: 18, y2: 18 },
-
       { x1: 0, y1: 62, x2: 18, y2: 62 },
-
       { x1: 18, y1: 18, x2: 18, y2: 62 },
-
       { x1: 120, y1: 18, x2: 102, y2: 18 },
-
       { x1: 120, y1: 62, x2: 102, y2: 62 },
-
       { x1: 102, y1: 18, x2: 102, y2: 62 },
-
       // Goal areas
       { x1: 0, y1: 30, x2: 6, y2: 30 },
-
       { x1: 0, y1: 50, x2: 6, y2: 50 },
-
       { x1: 6, y1: 30, x2: 6, y2: 50 },
-
       { x1: 120, y1: 30, x2: 114, y2: 30 },
-
       { x1: 120, y1: 50, x2: 114, y2: 50 },
-
       { x1: 114, y1: 30, x2: 114, y2: 50 },
-
       // Goal post
-
       { x1: 0, y1: 36, x2: 1, y2: 36 },
-
       { x1: 0, y1: 44, x2: 1, y2: 44 },
-
       { x1: 1, y1: 36, x2: 1, y2: 44 },
+      { x1: 120, y1: 36, x2: 119, y2: 36 },
+      { x1: 120, y1: 44, x2: 119, y2: 44 },
+      { x1: 119, y1: 36, x2: 119, y2: 44 },
+    ];
 
+    // football field circle coordinates
+    const circleCoordinates: CircleCoordinate[] = [
       // Circle and center
       { cx: 60, cy: 40, r: 10 },
       { cx: 60, cy: 40, r: 0.5 },
-
-      // Team A Players
-
-      ...(homePlayerCoordinates ?? []),
-      ...(awayPlayerCoordinates ?? []),
     ];
 
-    // Draw field boundaries
-    svg
-      .selectAll("line")
-      .data(coordinates)
-      .enter()
-      .append("line")
-      .attr("x1", (d) => d.x1 * 5) // Scale for better visibility
-      .attr("y1", (d) => d.y1 * 5)
-      .attr("x2", (d) => d.x2 * 5)
-      .attr("y2", (d) => d.y2 * 5)
-      .attr("stroke", "black")
-      .attr("stroke-width", 2);
+    const arcCoordinates = [
+      // Top penalty arc
+      {
+        cx: 12,
+        cy: 40,
+        r: 10,
+        startAngle: 0.65,
+        endAngle: 2.5,
+      },
+      // Bottom penalty arc
+      {
+        cx: 108,
+        cy: 40,
+        r: 10,
+        startAngle: 3.8,
+        endAngle: 5.65,
+      },
+    ];
 
-    // Draw circles for the center
+    // Function to generate path for arcs
+    const arcGenerator = d3
+      .arc<any>()
+      .innerRadius((d) => d.r * scale)
+      .outerRadius((d) => d.r * scale)
+      .startAngle((d) => d.startAngle)
+      .endAngle((d) => d.endAngle);
+
+    // Draw arcs infront of penalty areas
     svg
-      .selectAll("circle")
-      .data(coordinates.filter((d) => d.cx))
+      .selectAll("path.arc")
+      .data(arcCoordinates)
       .enter()
-      .append("circle")
-      .attr("cx", (d) => d.cx * 5)
-      .attr("cy", (d) => d.cy * 5)
-      .attr("r", (d) => d.r * 5)
+      .append("path")
+      .attr("class", "arc")
+      .attr("d", (d) =>
+        arcGenerator({ ...d, innerRadius: d.r, outerRadius: d.r })
+      )
+      .attr("transform", (d) => `translate(${d.cx * scale}, ${d.cy * scale})`)
       .attr("fill", "none")
       .attr("stroke", "black")
       .attr("stroke-width", 2);
-      
+
+    // Draw football field lines
+    svg
+      .selectAll("line")
+      .data(lineCoordinates)
+      .enter()
+      .append("line")
+      .attr("x1", (d) => d.x1 * scale)
+      .attr("y1", (d) => d.y1 * scale)
+      .attr("x2", (d) => d.x2 * scale)
+      .attr("y2", (d) => d.y2 * scale)
+      .attr("stroke", "black")
+      .attr("stroke-width", 2);
+
+    // Draw football field circles
+    const fieldGroup = svg.append("g").attr("class", "field-group");
+    fieldGroup
+      .selectAll("circle")
+      .data(circleCoordinates)
+      .enter()
+      .append("circle")
+      .attr("cx", (d) => d.cx * scale)
+      .attr("cy", (d) => d.cy * scale)
+      .attr("r", (d) => d.r * scale)
+      .attr("fill", "transparent")
+      .attr("stroke", "black")
+      .attr("stroke-width", 2);
+
+    // Append a text element to the SVG for the tooltip
+    const tooltipTextGroup = svg
+      .append("g")
+      .attr("class", "tooltip-text-group");
+    const tooltipText = tooltipTextGroup
+      .append("text")
+      .attr("fill", "black")
+      .attr("font-size", "12px")
+      .style("opacity", 0); // Hidden by default
+
+    // Draw home player circles
+    const homePlayerGroup = svg.append("g").attr("class", "home-player-group");
+    homePlayerGroup
+      .selectAll("circle")
+      .data(homePlayers ?? [])
+      .enter()
+      .append("circle")
+      .attr("cx", (p) => (p.coordinates ? p.coordinates[0] * scale : 0))
+      .attr("cy", (p) => (p.coordinates ? p.coordinates[1] * scale : 0))
+      .attr("r", 2 * scale)
+      .attr("fill", "transparent")
+      .attr("stroke", "black")
+      .attr("stroke-width", 2)
+      .attr("fill", "blue")
+      .on("mouseover", (_event, p) => {
+        tooltipText
+          .attr("x", p.coordinates ? p.coordinates[0] * scale + 10 : 0) // Position slightly to the right of the circle
+          .attr("y", p.coordinates ? p.coordinates[1] * scale : 0) // Align vertically with the circle
+          .text(`${p.name}`) // Set the text
+          .style("opacity", 1); // Make it visible
+      })
+      .on("mouseout", () => {
+        tooltipText.style("opacity", 0); // Hide the text
+      });
+
+    // Draw away player circles
+    const awayPlayerGroup = svg.append("g").attr("class", "away-player-group");
+    awayPlayerGroup
+      .selectAll("circle")
+      .data(awayPlayers ?? [])
+      .enter()
+      .append("circle")
+      .attr("cx", (p) => (p.coordinates ? (120 - p.coordinates[0]) * scale : 0))
+      .attr("cy", (p) => (p.coordinates ? p.coordinates[1] * scale : 0))
+      .attr("r", 2 * scale)
+      .attr("fill", "transparent")
+      .attr("stroke", "black")
+      .attr("stroke-width", 2)
+      .attr("fill", "darkred")
+      .on("mouseover", (_event, p) => {
+        tooltipText
+          .attr("x", p.coordinates ? (120 - p.coordinates[0]) * scale + 10 : 0) // Position slightly to the right of the circle
+          .attr("y", p.coordinates ? p.coordinates[1] * scale : 0) // Align vertically with the circle
+          .text(`${p.name}`) // Set the text
+          .style("opacity", 1); // Make it visible
+      })
+      .on("mouseout", () => {
+        tooltipText.style("opacity", 0); // Hide the text
+      });
+
+    // Add home jersey number inside player circles
+    const homeJerseyGroup = svg.append("g").attr("class", "home-jersey-group");
+    homeJerseyGroup
+      .selectAll("text")
+      .data(homePlayers ?? [])
+      .enter()
+      .append("text")
+      .attr("x", (p) => (p.coordinates ? p.coordinates[0] * scale : 0))
+      .attr("y", (p) => (p.coordinates ? p.coordinates[1] * scale : 0))
+      .attr("dy", "0.35em")
+      .attr("text-anchor", "middle")
+      .attr("fill", "white")
+      .text((p) => p.jersey)
+      .on("mouseover", (_event, p) => {
+        tooltipText
+          .attr("x", p.coordinates ? p.coordinates[0] * scale + 10 : 0) // Position slightly to the right of the circle
+          .attr("y", p.coordinates ? p.coordinates[1] * scale : 0) // Align vertically with the circle
+          .text(`${p.name}`) // Set the text
+          .style("opacity", 1); // Make it visible
+      })
+      .on("mouseout", () => {
+        tooltipText.style("opacity", 0); // Hide the text
+      });
+
+    // Add away jersey number inside player circles
+    const awayJerseyGroup = svg.append("g").attr("class", "away-jersey-group");
+    awayJerseyGroup
+      .selectAll("text")
+      .data(awayPlayers ?? [])
+      .enter()
+      .append("text")
+      .attr("x", (p) => (p.coordinates ? (120 - p.coordinates[0]) * scale : 0))
+      .attr("y", (p) => (p.coordinates ? p.coordinates[1] * scale : 0))
+      .attr("dy", "0.35em")
+      .attr("text-anchor", "middle")
+      .attr("fill", "white")
+      .text((p) => p.jersey)
+      .on("mouseover", (_event, p) => {
+        tooltipText
+          .attr("x", p.coordinates ? (120- p.coordinates[0]) * scale + 10 : 0) // Position slightly to the right of the circle
+          .attr("y", p.coordinates ? p.coordinates[1] * scale : 0) // Align vertically with the circle
+          .text(`${p.name}`) // Set the text
+          .style("opacity", 1); // Make it visible
+      })
+      .on("mouseout", () => {
+        tooltipText.style("opacity", 0); // Hide the text
+      });
   }, [homePlayers, awayPlayers]);
 
   return <svg className="bg-green-600" ref={svgRef}></svg>;

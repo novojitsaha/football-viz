@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import competitions from "../assets/data/competitions.json";
+import competitions from "../assets/data/competitions/competitions.json";
 import Competition from "../types/competition";
 import Match from "../types/match";
 

@@ -8,7 +8,6 @@ import EventCard from "./components/EventCard";
 import FootballField from "./components/FootballField";
 import { positionCoordinates } from "./utils/positionCoordinates";
 import controller from "./utils/controller";
-import calcPlayerLocation from "./utils/calcPlayerLocation";
 
 function App() {
   // State to track matchId
@@ -179,6 +178,7 @@ function App() {
           <FootballField
             homePlayers={homeTeam?.players}
             awayPlayers={awayTeam?.players}
+            event={eventArr}
           />
         ) : (
           <p>Event not available yet. </p>
