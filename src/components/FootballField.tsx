@@ -5,6 +5,7 @@ interface FootballFieldProps {
   homePlayers: Player[] | undefined;
   awayPlayers: Player[] | undefined;
   event: any;
+  eventIndex: number;
 }
 
 // prop prop.current
@@ -12,6 +13,7 @@ const FootballField: React.FC<FootballFieldProps> = ({
   homePlayers,
   awayPlayers,
   event,
+  eventIndex,
 }) => {
   // persistent reference to the svg element
   const svgRef = useRef(null);
@@ -152,7 +154,7 @@ const FootballField: React.FC<FootballFieldProps> = ({
     // Draw home player circles
     const homePlayerGroup = svg.append("g").attr("class", "home-player-group");
     homePlayerGroup
-      .selectAll("circle")
+      .selectAll("player-circles")
       .data(homePlayers ?? [])
       .enter()
       .append("circle")
@@ -177,7 +179,7 @@ const FootballField: React.FC<FootballFieldProps> = ({
     // Draw away player circles
     const awayPlayerGroup = svg.append("g").attr("class", "away-player-group");
     awayPlayerGroup
-      .selectAll("circle")
+      .selectAll("player-circles")
       .data(awayPlayers ?? [])
       .enter()
       .append("circle")
@@ -238,7 +240,7 @@ const FootballField: React.FC<FootballFieldProps> = ({
       .text((p) => p.jersey)
       .on("mouseover", (_event, p) => {
         tooltipText
-          .attr("x", p.coordinates ? (120- p.coordinates[0]) * scale + 10 : 0) // Position slightly to the right of the circle
+          .attr("x", p.coordinates ? (120 - p.coordinates[0]) * scale + 10 : 0) // Position slightly to the right of the circle
           .attr("y", p.coordinates ? p.coordinates[1] * scale : 0) // Align vertically with the circle
           .text(`${p.name}`) // Set the text
           .style("opacity", 1); // Make it visible
@@ -246,7 +248,34 @@ const FootballField: React.FC<FootballFieldProps> = ({
       .on("mouseout", () => {
         tooltipText.style("opacity", 0); // Hide the text
       });
-  }, [homePlayers, awayPlayers]);
+
+    if (event[eventIndex]?.type?.name === "Pass") {
+      const passEvent = event[eventIndex];
+      const passCoordinates = {
+        x1: passEvent.location[0] * scale,
+        y1: passEvent.location[1] * scale,
+        x2: passEvent.pass.end_location[0] * scale,
+        y2: passEvent.pass.end_location[1] * scale,
+      };
+      console.log(
+        `Pass from ${passEvent.player.name} to ${passEvent.pass.recipient.name}`
+      );
+      console.log("Pass Coordinates:", passCoordinates);
+
+      svg
+        .selectAll("pass-lines")
+        .data([passCoordinates])
+        .enter()
+        .append("line")
+        .attr("class", "pass-lines")
+        .attr("x1", (d) => d.x1)
+        .attr("y1", (d) => d.y1)
+        .attr("x2", (d) => d.x2)
+        .attr("y2", (d) => d.y2)
+        .attr("stroke", "red")
+        .attr("stroke-width", 2);
+    }
+  }, [event, eventIndex]);
 
   return <svg className="bg-green-600" ref={svgRef}></svg>;
 };

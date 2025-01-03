@@ -37,6 +37,7 @@ function App() {
       const getEventFile: { default: any[] } = await import(eventDir);
 
       setEventArr(getEventFile.default);
+      console.log(eventDir)
 
       return getEventFile.default;
     } catch (e) {
@@ -87,7 +88,7 @@ function App() {
           id: o.player.id,
           name: o.player.name,
           position: o.position.name,
-          coordinates: positionCoordinates[o.position.name],
+          coordinates: positionCoordinates[(o.position.name).replace(/Left|Right/g, (match) => ( match === "Left" ? "Right" : "Left"))],
           jersey: o.jersey_number,
         }))
       ),
@@ -179,6 +180,7 @@ function App() {
             homePlayers={homeTeam?.players}
             awayPlayers={awayTeam?.players}
             event={eventArr}
+            eventIndex={eventIndex}
           />
         ) : (
           <p>Event not available yet. </p>

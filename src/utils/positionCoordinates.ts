@@ -1,4 +1,4 @@
-export const positionCoordinates = {
+export const positionCoordinates : {[key:string]: number[]} = {
 
     "Goalkeeper": [4,40],
 
@@ -14,7 +14,7 @@ export const positionCoordinates = {
     "Right Back": [20,65],    
 
     // Midfielders
-    "Left Wing Back": [30,15], 
+    "Left Wing Back": [35,15], 
 
     "Left Defensive Midfield": [30,28],  
 
@@ -22,24 +22,24 @@ export const positionCoordinates = {
 
     "Right Defensive Midfield": [30,52],  
 
-    "Right Wing Back": [30,65],   
+    "Right Wing Back": [35,65],   
 
   
  
-    "Left Midfield": [45,15],    
+    "Left Midfield": [30,15],    
 
-    "Left Center Midfield": [35,28],  
+    "Left Center Midfield": [30,28],  
 
-    "Center Midfield": [35,40],    
+    "Center Midfield": [30,40],    
 
-    "Right Center Midfield": [35,52],   
+    "Right Center Midfield": [30,52],   
 
-    "Right Midfield": [45,65],    
+    "Right Midfield": [30,65],    
   
     // Attackers
     "Left Wing": [45,15],    
 
-    "Left Attacking Midfield": [50,70],   
+    "Left Attacking Midfield": [50,15],   
 
     "Center Attacking Midfield": [50,45], 
 
